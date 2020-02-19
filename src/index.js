@@ -9,16 +9,20 @@ class Square extends React.Component {
   constructor(props) {
     super(props)
     this.clickHandler1 = this.clickHandler1.bind(this)
+    this.state = {
+      value: this.props.value
+    }
   }
   clickHandler1() {
-    alert(this.props.value + ' was clicked')
+    alert(this.state.value + ' was clicked')
+    this.setState({value: 'X'})
   }
   clickHandler2 = arg => e => {alert(arg + ' was clicked')}
   render() {
     return React.createElement('button',{
         className: "square",
-        onClick: this.clickHandler1 // or this.clickHandler2(this.props.value)
-    }, this.props.value)
+        onClick: this.clickHandler1 // or this.clickHandler2(this.state.value)
+    }, this.state.value)
 
     // return (
     //   <button className="square">
