@@ -8,8 +8,8 @@ class Square extends React.Component {
   render() {
     return React.createElement('button',{
         className: "square"
-    })
-    
+    }, this.props.value)
+
     // return (
     //   <button className="square">
     //     {/* TODO */}
@@ -19,8 +19,10 @@ class Square extends React.Component {
 }
 
 class Board extends React.Component {
-  renderSquare(i) {
-    return React.createElement(Square)
+  renderSquare(row, col) {
+    return React.createElement(Square, {
+        value: row*3 + col
+    })
     //return <Square />;
   }
 
@@ -29,21 +31,21 @@ class Board extends React.Component {
     return React.createElement('div',{className: "status"},status);
   }
 
-  renderRow() {
+  renderRow(row) {
       return React.createElement('div', {
           className: "board-row"
       },
-      this.renderSquare(),
-      this.renderSquare(),
-      this.renderSquare())
+      this.renderSquare(row, 0),
+      this.renderSquare(row, 1),
+      this.renderSquare(row, 2))
   }
 
   render() {
     return React.createElement('div', null,
     this.renderStatus(),
-    this.renderRow(),
-    this.renderRow(),
-    this.renderRow()
+    this.renderRow(0),
+    this.renderRow(1),
+    this.renderRow(2)
     )
 
     // return (
