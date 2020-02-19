@@ -5,9 +5,19 @@ import ReactDOM from 'react-dom'
 import './index.css'
 
 class Square extends React.Component {
+  // seems necessary for property method click handler,  2 options
+  constructor(props) {
+    super(props)
+    this.clickHandler1 = this.clickHandler1.bind(this)
+  }
+  clickHandler1() {
+    alert(this.props.value + ' was clicked')
+  }
+  clickHandler2 = arg => e => {alert(arg + ' was clicked')}
   render() {
     return React.createElement('button',{
-        className: "square"
+        className: "square",
+        onClick: this.clickHandler1 // or this.clickHandler2(this.props.value)
     }, this.props.value)
 
     // return (
