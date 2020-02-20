@@ -13,13 +13,54 @@ class Board extends React.Component {
   static ROW_WIDTH = 3;
   static CLICKED_X = 'X';
   static CLICKED_O = 'O';
+
+  renderSquare(row, col) {
+    var i = row * Board.ROW_WIDTH + col;
+    return React.createElement(Square, {
+        index: i,
+        value: this.props.squares[i],
+        onClick: () => this.props.onSquareClick(i)
+    })
+  }
+
+  renderRow(row) {
+      return React.createElement('div', {
+          className: "board-row"
+      },
+      this.renderSquare(row, 0),
+      this.renderSquare(row, 1),
+      this.renderSquare(row, 2))
+  }
+
+  render() {
+    return React.createElement('div', null,
+    this.renderRow(0),
+    this.renderRow(1),
+    this.renderRow(2)
+    )
+  }
+}
+
+class Game extends React.Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
-      squares: Array(9).fill(null),
-      nextIsX: true,
-      winner: null
+      history: [ {squares: Array(9).fill(null)} ],
+      nextIsX: true
     }
+  }
+
+  handleSquareClick(i) {
+    const current = this.state.history[this.state.history.length-1].squares
+    if(current[i] !== null || this.determineWinner(current) ) {
+      return  // ignore click on the clicked ones or after anyone already wins
+    }
+    var new_squares = current.slice();
+    new_squares[i] = this.state.nextIsX ? Board.CLICKED_X : Board.CLICKED_O;
+    this.setState({
+      nextIsX: !this.state.nextIsX,
+      history: this.state.history.concat([{squares: new_squares}])
+    })
   }
 
   determineWinner(squares) {
@@ -45,65 +86,21 @@ class Board extends React.Component {
     return winner;
   }
 
-  handleSquareClick(i) {
-    if (this.state.squares[i] !== null ) {
-      return  // ignore click
-    }
-    const new_squares = this.state.squares.slice();
-    new_squares[i] = this.state.nextIsX ? Board.CLICKED_X : Board.CLICKED_O;
-    // check winner after squares updated
-    var new_winner = this.determineWinner(new_squares);
-    this.setState({
-      squares:new_squares,
-      nextIsX: !this.state.nextIsX,
-      winner: new_winner
-    })
-  }
-
-  renderSquare(row, col) {
-    var i = row * Board.ROW_WIDTH + col;
-    return React.createElement(Square, {
-        index: i,
-        value: this.state.squares[i],
-        onClick: () => this.handleSquareClick(i)
-    })
-  }
-
-  renderRow(row) {
-      return React.createElement('div', {
-          className: "board-row"
-      },
-      this.renderSquare(row, 0),
-      this.renderSquare(row, 1),
-      this.renderSquare(row, 2))
-  }
-
-  renderStatus() {
-    const status = this.state.winner === null
-      ? 'Next player: ' + (this.state.nextIsX ? Board.CLICKED_X : Board.CLICKED_O)
-      : 'Player ' + this.state.winner + ' is the winner!';
-    return React.createElement('div',{className: "status"},status);
-  }
-
   render() {
-    return React.createElement('div', null,
-    this.renderStatus(),
-    this.renderRow(0),
-    this.renderRow(1),
-    this.renderRow(2)
-    )
-  }
-}
+    const current = this.state.history[this.state.history.length-1].squares
+    const winner = this.determineWinner(current)
+    const status = winner ? `Player ${winner} is the winner!` 
+      : `Next player: ${this.state.nextIsX ? Board.CLICKED_X : Board.CLICKED_O}`;
 
-class Game extends React.Component {
-  render() {
     return (
       <div className="game">
         <div className="game-board">
-          <Board />
+          <Board
+          squares={current}
+          onSquareClick={(i) => this.handleSquareClick(i)} />
         </div>
         <div className="game-info">
-          <div>{/* status */}</div>
+          <div>{status}</div>
           <ol>{/* TODO */}</ol>
         </div>
       </div>
