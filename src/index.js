@@ -11,18 +11,53 @@ function Square(props) {
 
 class Board extends React.Component {
   static ROW_WIDTH = 3;
-  static CLICKED = 'X';
+  static CLICKED_X = 'X';
+  static CLICKED_O = 'O';
   constructor(props) {
     super(props)
     this.state = {
-      squares: Array(9).fill(null)
+      squares: Array(9).fill(null),
+      nextIsX: true,
+      winner: null
     }
   }
 
+  determineWinner(squares) {
+    const lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+    var winner = null;
+    lines.forEach((line) => {
+      var [i, j, k] = line
+      if (squares[i] === squares[j]
+        && squares[j] === squares[k]
+        && squares[k] !== null) {
+        winner = squares[i];
+      }
+    })
+    return winner;
+  }
+
   handleSquareClick(i) {
+    if (this.state.squares[i] !== null ) {
+      return  // ignore click
+    }
     const new_squares = this.state.squares.slice();
-    new_squares[i] = Board.CLICKED
-    this.setState({squares:new_squares})
+    new_squares[i] = this.state.nextIsX ? Board.CLICKED_X : Board.CLICKED_O;
+    // check winner after squares updated
+    var new_winner = this.determineWinner(new_squares);
+    this.setState({
+      squares:new_squares,
+      nextIsX: !this.state.nextIsX,
+      winner: new_winner
+    })
   }
 
   renderSquare(row, col) {
@@ -44,7 +79,9 @@ class Board extends React.Component {
   }
 
   renderStatus() {
-    const status = 'Next player: X';
+    const status = this.state.winner === null
+      ? 'Next player: ' + (this.state.nextIsX ? Board.CLICKED_X : Board.CLICKED_O)
+      : 'Player ' + this.state.winner + ' is the winner!';
     return React.createElement('div',{className: "status"},status);
   }
 
