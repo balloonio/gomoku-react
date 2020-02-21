@@ -46,12 +46,13 @@ class Game extends React.Component {
     super(props);
     this.state = {
       history: [ {squares: Array(9).fill(null)} ],
-      nextIsX: true
+      nextIsX: true,
+      currentStep: 0,
     }
   }
 
   handleSquareClick(i) {
-    const current = this.state.history[this.state.history.length-1].squares
+    const current = this.state.history[this.state.currentStep].squares
     if(current[i] !== null || this.determineWinner(current) ) {
       return  // ignore click on the clicked ones or after anyone already wins
     }
@@ -59,7 +60,8 @@ class Game extends React.Component {
     new_squares[i] = this.state.nextIsX ? Board.CLICKED_X : Board.CLICKED_O;
     this.setState({
       nextIsX: !this.state.nextIsX,
-      history: this.state.history.concat([{squares: new_squares}])
+      history: this.state.history.slice(0,this.state.currentStep+1).concat([{squares: new_squares}]),
+      currentStep: this.state.currentStep + 1
     })
   }
 
@@ -86,11 +88,30 @@ class Game extends React.Component {
     return winner;
   }
 
+  handleJumpButtonClick(i) {
+    this.setState({
+      history: this.state.history,
+      nextIsX: i % 2 === 0,
+      currentStep: i
+    })
+  }
+
   render() {
-    const current = this.state.history[this.state.history.length-1].squares
+    const current = this.state.history[this.state.currentStep].squares
     const winner = this.determineWinner(current)
     const status = winner ? `Player ${winner} is the winner!` 
       : `Next player: ${this.state.nextIsX ? Board.CLICKED_X : Board.CLICKED_O}`;
+
+    const moveButtons = this.state.history.map( (_, index) => {
+      const desc = index ?
+        'Go to move #' + index :
+        'Go to game start';
+      return (
+        <li key={index}>
+          <button onClick={() => this.handleJumpButtonClick(index)}>{desc}</button>
+        </li>
+      )
+    })
 
     return (
       <div className="game">
@@ -101,7 +122,7 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{status}</div>
-          <ol>{/* TODO */}</ol>
+          <ol start="0">{moveButtons}</ol>
         </div>
       </div>
     );
