@@ -2,15 +2,26 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import './index.css'
 
-function Square(props) {
-  return React.createElement('button',{
+class Square extends React.Component {
+
+  row() {
+    return Math.floor( this.props.index / Board.ROW_WIDTH);
+  }
+
+  col() {
+    return this.props.index % Board.ROW_WIDTH;
+  }
+
+  render() {
+    return React.createElement('button',{
       className: "square",
-      onClick: () => props.onClick()
-  }, props.value)
+      onClick: () => this.props.onClick()
+     }, this.props.value)
+  }
 }
 
 class Board extends React.Component {
-  static ROW_WIDTH = 3;
+  static ROW_WIDTH = 20;
   static CLICKED_X = 'X';
   static CLICKED_O = 'O';
 
@@ -24,19 +35,18 @@ class Board extends React.Component {
   }
 
   renderRow(row) {
+    let sqs = Array(Board.ROW_WIDTH).fill(null);
+    sqs = sqs.map((_,i)=> this.renderSquare(row, i));
       return React.createElement('div', {
           className: "board-row"
-      },
-      this.renderSquare(row, 0),
-      this.renderSquare(row, 1),
-      this.renderSquare(row, 2))
+      },...sqs)
   }
 
   render() {
+    let rows = Array(Board.ROW_WIDTH).fill(null);
+    rows = rows.map((_, index) => this.renderRow(index))
     return React.createElement('div', null,
-    this.renderRow(0),
-    this.renderRow(1),
-    this.renderRow(2)
+    ...rows
     )
   }
 }
@@ -45,15 +55,17 @@ class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [ {squares: Array(9).fill(null)} ],
+      history: [ {squares: Array(Board.ROW_WIDTH * Board.ROW_WIDTH).fill(null)} ],
       nextIsX: true,
       currentStep: 0,
+      winner: null
     }
   }
 
   handleSquareClick(i) {
     const current = this.state.history[this.state.currentStep].squares
-    if(current[i] !== null || this.determineWinner(current) ) {
+    const winner = this.state.winner
+    if(current[i] !== null || winner ) {
       return  // ignore click on the clicked ones or after anyone already wins
     }
     var new_squares = current.slice();
@@ -61,8 +73,42 @@ class Game extends React.Component {
     this.setState({
       nextIsX: !this.state.nextIsX,
       history: this.state.history.slice(0,this.state.currentStep+1).concat([{squares: new_squares}]),
-      currentStep: this.state.currentStep + 1
+      currentStep: this.state.currentStep + 1,
+      winner: this.determineWinnerWuziqi(new_squares, i)
     })
+  }
+
+  determineWinnerWuziqi(squares, click) {
+    const top = [-1, 0]
+    const bot = [1, 0]
+    const left = [0, -1]
+    const right = [0,1]
+    const topRight = [-1,1]
+    const topLeft = [-1,-1]
+    const botRight = [1,1]
+    const botLeft = [1,-1]
+    const player = squares[click]
+    if((this.countAlongDirection(squares, top, click) + this.countAlongDirection(squares, bot, click) === 4)
+      || (this.countAlongDirection(squares, left, click) + this.countAlongDirection(squares, right, click) === 4)
+      || (this.countAlongDirection(squares, topRight, click) + this.countAlongDirection(squares, botLeft, click) === 4)
+      || (this.countAlongDirection(squares, topLeft, click) + this.countAlongDirection(squares, botRight, click) === 4)){
+        return player;
+      }
+    return null;
+  }
+  
+  countAlongDirection(squares, dir, click) {
+    const [dx, dy] = dir;
+    const player = squares[click];
+    var [x,y] = [Math.floor(click/Board.ROW_WIDTH), click%Board.ROW_WIDTH];
+    [x, y] = [dx + x, dy+ y];
+    var count = 0;
+    while(squares[x * Board.ROW_WIDTH + y] === player) {
+      count += 1;
+      [x, y] = [dx + x, dy+ y];
+    }
+    console.log(x, y, dir, [Math.floor(click/Board.ROW_WIDTH), click%Board.ROW_WIDTH], count,player)
+    return count;
   }
 
   determineWinner(squares) {
@@ -98,7 +144,7 @@ class Game extends React.Component {
 
   render() {
     const current = this.state.history[this.state.currentStep].squares
-    const winner = this.determineWinner(current)
+    const winner = this.state.winner
     const status = winner ? `Player ${winner} is the winner!` 
       : `Next player: ${this.state.nextIsX ? Board.CLICKED_X : Board.CLICKED_O}`;
 
