@@ -55,10 +55,9 @@ class Game extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [ {squares: Array(Board.ROW_WIDTH * Board.ROW_WIDTH).fill(null)} ],
+      history: [ {squares: Array(Board.ROW_WIDTH * Board.ROW_WIDTH).fill(null), click: null} ],
       nextIsX: true,
       currentStep: 0,
-      winner: null
     }
   }
 
@@ -72,13 +71,13 @@ class Game extends React.Component {
     new_squares[i] = this.state.nextIsX ? Board.CLICKED_X : Board.CLICKED_O;
     this.setState({
       nextIsX: !this.state.nextIsX,
-      history: this.state.history.slice(0,this.state.currentStep+1).concat([{squares: new_squares}]),
+      history: this.state.history.slice(0,this.state.currentStep+1).concat([{squares: new_squares, click:i}]),
       currentStep: this.state.currentStep + 1,
-      winner: this.determineWinnerWuziqi(new_squares, i)
     })
   }
 
   determineWinnerWuziqi(squares, click) {
+    if( click === null ) {return null;}
     const top = [-1, 0]
     const bot = [1, 0]
     const left = [0, -1]
@@ -107,7 +106,7 @@ class Game extends React.Component {
       count += 1;
       [x, y] = [dx + x, dy+ y];
     }
-    console.log(x, y, dir, [Math.floor(click/Board.ROW_WIDTH), click%Board.ROW_WIDTH], count,player)
+    //console.log(x, y, dir, [Math.floor(click/Board.ROW_WIDTH), click%Board.ROW_WIDTH], count,player)
     return count;
   }
 
@@ -138,13 +137,14 @@ class Game extends React.Component {
     this.setState({
       history: this.state.history,
       nextIsX: i % 2 === 0,
-      currentStep: i
+      currentStep: i,
     })
   }
 
   render() {
     const current = this.state.history[this.state.currentStep].squares
-    const winner = this.state.winner
+    const move = this.state.history[this.state.currentStep].click
+    const winner = this.determineWinnerWuziqi(current, move)
     const status = winner ? `Player ${winner} is the winner!` 
       : `Next player: ${this.state.nextIsX ? Board.CLICKED_X : Board.CLICKED_O}`;
 
