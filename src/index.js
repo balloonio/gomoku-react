@@ -3,15 +3,6 @@ import ReactDOM from 'react-dom'
 import './index.css'
 
 class Square extends React.Component {
-
-  row() {
-    return Math.floor( this.props.index / Board.ROW_WIDTH);
-  }
-
-  col() {
-    return this.props.index % Board.ROW_WIDTH;
-  }
-
   render() {
     return React.createElement('button',{
       className: "square",
@@ -63,7 +54,8 @@ class Game extends React.Component {
 
   handleSquareClick(i) {
     const current = this.state.history[this.state.currentStep].squares
-    const winner = this.state.winner
+    const move = this.state.history[this.state.currentStep].click
+    const winner = this.determineWinnerWuziqi(current, move)
     if(current[i] !== null || winner ) {
       return  // ignore click on the clicked ones or after anyone already wins
     }
